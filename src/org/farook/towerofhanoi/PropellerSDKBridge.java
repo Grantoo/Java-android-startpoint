@@ -5,6 +5,7 @@ import java.util.Map;
 import org.grantoo.lib.propeller.PropellerSDK;
 import org.grantoo.lib.propeller.PropellerSDKBroadcastReceiver;
 import org.grantoo.lib.propeller.PropellerSDKListener;
+import org.grantoo.lib.propeller.gcm.PropellerSDKGCM;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -68,6 +69,8 @@ public class PropellerSDKBridge extends PropellerSDKListener {
 		PropellerSDK.onCreate(activity);
 
 		if (BuildConfig.DEBUG) {
+			// use the sandbox GCM sender ID
+			PropellerSDKGCM.onCreate(activity, "709454243316");
 			// this is for test startup
 			PropellerSDK.useSandbox();
 			// use the sandbox key/secret pair
@@ -75,6 +78,8 @@ public class PropellerSDKBridge extends PropellerSDKListener {
 				"51145f0fdce0751836000028",
 				"841f983c-e97a-190b-62bf-ccc2ec29cde3");
 		} else {
+			// use the production GCM sender ID
+			PropellerSDKGCM.onCreate(activity, "");
 			// use the production game/secret pair
 			PropellerSDK.initialize(
 				"",
