@@ -2,6 +2,7 @@ package org.farook.towerofhanoi;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Stack;
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.handler.timer.ITimerCallback;
@@ -28,8 +29,10 @@ import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.andengine.util.HorizontalAlign;
 import org.andengine.util.adt.io.in.IInputStreamOpener;
 import org.andengine.util.debug.Debug;
+import android.content.Intent;
 import android.graphics.Color;
 import android.opengl.GLES20;
+import android.os.Bundle;
 
 public class TowerOfHanoiActivity extends SimpleBaseGameActivity {
 
@@ -87,6 +90,33 @@ public class TowerOfHanoiActivity extends SimpleBaseGameActivity {
 		mMovesValue,
 		mTimeValue,
 		mScoreValue;
+
+	private PropellerSDKBridge mPropellerSDKBridge;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		mPropellerSDKBridge = new PropellerSDKBridge();
+		mPropellerSDKBridge.onCreate(this, savedInstanceState);
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		mPropellerSDKBridge.onActivityResult(this, requestCode, resultCode, data);
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		mPropellerSDKBridge.onResume(this);
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		mPropellerSDKBridge.onPause(this);
+	}
 
 	@Override
 	public EngineOptions onCreateEngineOptions() {
@@ -387,7 +417,7 @@ public class TowerOfHanoiActivity extends SimpleBaseGameActivity {
 	}
 
 	private void challengePressed() {
-		// TODO: launch multiplayer
+		mPropellerSDKBridge.launch();
 	}
 
 	public void showButtons() {
@@ -401,8 +431,8 @@ public class TowerOfHanoiActivity extends SimpleBaseGameActivity {
 			mScene.registerTouchArea(mChallengeButton);
 		}
 
-		// TODO: request latest challenge count
-		// TODO: request latest tournament info
+		mPropellerSDKBridge.syncChallengeCounts();
+		mPropellerSDKBridge.syncTournamentInfo();
 	}
 
 	private void hideButtons() {
@@ -455,7 +485,7 @@ public class TowerOfHanoiActivity extends SimpleBaseGameActivity {
 						mScene.unregisterUpdateHandler(pTimerHandler);
 
 						if (mMatchIsChallenge) {
-							// TODO: submit score
+							mPropellerSDKBridge.launchWithMatchResult(mScoreValue);
 						} else {
 							showButtons();
 						}
@@ -464,7 +494,7 @@ public class TowerOfHanoiActivity extends SimpleBaseGameActivity {
 				}));
 	}
 
-	private void resetScene() {
+	public void resetScene() {
 		mScene.detachChild(mScore);
 		mScene.detachChild(mGameOverText);
 
@@ -566,6 +596,22 @@ public class TowerOfHanoiActivity extends SimpleBaseGameActivity {
 	private void setTextValues() {
 		mMoves.setText("Moves: " + mMovesValue);
 		mTime.setText("Time: " + mTimeValue);
+	}
+
+	public void updateChallengeCount(int count) {
+		if (count > 0) {
+			mChallengeCountText.setText("" + count);
+		} else {
+			mChallengeCountText.setText("");
+		}
+	}
+
+	public void updateTournamentInfo(Map<String, Object> tournamentInfo) {
+		if ((tournamentInfo == null) || tournamentInfo.isEmpty()) {
+			mChallengeButtonText.setText("Challenge ");
+		} else {
+			mChallengeButtonText.setText("Tournament");
+		}
 	}
 
 }
