@@ -3,5 +3,6 @@
 
     <string name="hello">Hello World, TowerOfHanoiActivity!</string>
     <string name="app_name">TowerOfHanoi</string>
+    <string name="app_id">402717543182930</string>
 
 </resources>
