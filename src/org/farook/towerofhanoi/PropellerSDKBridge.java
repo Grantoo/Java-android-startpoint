@@ -1,7 +1,9 @@
 package org.farook.towerofhanoi;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.grantoo.lib.propeller.PropellerSDK;
 import org.grantoo.lib.propeller.PropellerSDKBroadcastReceiver;
@@ -51,6 +53,16 @@ public class PropellerSDKBridge extends PropellerSDKListener {
 	 * Broadcast intent tournament info action.
 	 */
 	private static final String INTENT_ACTION_TOURNAMENT_INFO = "PropellerSDKTournamentInfo";
+
+	/**
+	 * Broadcast intent virtual good list action.
+	 */
+	private static final String INTENT_ACTION_VIRTUAL_GOOD_LIST = "PropellerSDKVirtualGoodList";
+
+	/**
+	 * Broadcast intent virtual good rollback action.
+	 */
+	private static final String INTENT_ACTION_VIRTUAL_GOOD_ROLLBACK = "PropellerSDKVirtualGoodRollback";
 
 	/**
 	 * Host activity.
@@ -144,6 +156,8 @@ public class PropellerSDKBridge extends PropellerSDKListener {
 		mIntentFilter = new IntentFilter();
 		mIntentFilter.addAction(INTENT_ACTION_CHALLENGE_COUNT_CHANGED);
 		mIntentFilter.addAction(INTENT_ACTION_TOURNAMENT_INFO);
+		mIntentFilter.addAction(INTENT_ACTION_VIRTUAL_GOOD_LIST);
+		mIntentFilter.addAction(INTENT_ACTION_VIRTUAL_GOOD_ROLLBACK);
 
 		mBroadcastReceiver = getBroadcastReceiver();
 	}
@@ -215,6 +229,7 @@ public class PropellerSDKBridge extends PropellerSDKListener {
 	private BroadcastReceiver getBroadcastReceiver() {
 		return new PropellerSDKBroadcastReceiver() {
 
+			@SuppressWarnings("unchecked")
 			@Override
 			public void onReceive(Context context, String action, Map<String, Object> data) {
 				if (action.equals(INTENT_ACTION_CHALLENGE_COUNT_CHANGED)) {
@@ -229,6 +244,49 @@ public class PropellerSDKBridge extends PropellerSDKListener {
 					mActivity.updateChallengeCount(count);
 				} else if (action.equals(INTENT_ACTION_TOURNAMENT_INFO)) {
 					mActivity.updateTournamentInfo(data);
+				} else if (action.equals(INTENT_ACTION_VIRTUAL_GOOD_LIST)) {
+					String transactionId = "";
+					Object transactionIdObject = data.get("transactionID");
+
+					if ((transactionIdObject != null) &&
+						(transactionIdObject instanceof String)) {
+						transactionId = (String) transactionIdObject;
+					}
+
+					List<String> virtualGoods = new ArrayList<String>();
+					Object virtualGoodsObject = data.get("virtualGoods");
+
+					if ((virtualGoodsObject != null) &&
+						(virtualGoodsObject instanceof List)) {
+						for (Object virtualGoodObject : (List<Object>) virtualGoodsObject) {
+							if ((virtualGoodObject == null) ||
+								!(virtualGoodObject instanceof Map)) {
+								continue;
+							}
+
+							Map<String, Object> virtualGood = (Map<String, Object>) virtualGoodObject;
+							Object virtualGoodIdObject = virtualGood.get("goodId");
+
+							if ((virtualGoodIdObject == null) ||
+								!(virtualGoodIdObject instanceof String)) {
+								continue;
+							}
+
+							virtualGoods.add((String) virtualGoodIdObject);
+						}
+					}
+
+					mActivity.updateVirtualGoods(transactionId, virtualGoods);
+				} else if (action.equals(INTENT_ACTION_VIRTUAL_GOOD_ROLLBACK)) {
+					String transactionId = "";
+					Object transactionIdObject = data.get("transactionID");
+
+					if ((transactionIdObject != null) &&
+						(transactionIdObject instanceof String)) {
+						transactionId = (String) transactionIdObject;
+					}
+
+					mActivity.rollbackVirtualGoods(transactionId);
 				}
 			}
 
@@ -268,6 +326,29 @@ public class PropellerSDKBridge extends PropellerSDKListener {
 	 */
 	public void syncTournamentInfo() {
 		PropellerSDK.instance().syncTournamentInfo();
+	}
+
+	/***************************************************************************
+	 * Request synchronization of virtual goods.
+	 * 
+	 * @return True if the virtual goods synchronization request was made, false
+	 *         otherwise.
+	 */
+	public boolean syncVirtualGoods() {
+		return PropellerSDK.instance().syncVirtualGoods();
+	}
+
+	/***************************************************************************
+	 * Acknowledge the virtual goods.
+	 * 
+	 * @param transactionId Transaction ID of the virtual goods to acknowledge.
+	 * @param consumed Flags whether or not the virtual goods being acknowledged
+	 *        were consumed, false otherwise.
+	 * @return True if the virtual good acknowledgement request was made, false
+	 *         otherwise.
+	 */
+	public boolean acknowledgeVirtualGoods(String transactionId, boolean consumed) {
+		return PropellerSDK.instance().acknowledgeVirtualGoods(transactionId, consumed);
 	}
 
 	/***************************************************************************

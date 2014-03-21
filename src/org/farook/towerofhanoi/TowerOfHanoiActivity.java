@@ -2,6 +2,7 @@ package org.farook.towerofhanoi;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import org.andengine.engine.camera.Camera;
@@ -433,6 +434,7 @@ public class TowerOfHanoiActivity extends SimpleBaseGameActivity {
 
 		mPropellerSDKBridge.syncChallengeCounts();
 		mPropellerSDKBridge.syncTournamentInfo();
+		mPropellerSDKBridge.syncVirtualGoods();
 	}
 
 	private void hideButtons() {
@@ -612,6 +614,16 @@ public class TowerOfHanoiActivity extends SimpleBaseGameActivity {
 		} else {
 			mChallengeButtonText.setText("Tournament");
 		}
+	}
+
+	public void updateVirtualGoods(String transactionId, List<String> virtualGoods) {
+		// process each virtual good
+
+		mPropellerSDKBridge.acknowledgeVirtualGoods(transactionId, true);
+	}
+
+	public void rollbackVirtualGoods(String transactionId) {
+		// rollback the virtual goods for the given transaction ID
 	}
 
 }
